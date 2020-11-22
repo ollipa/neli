@@ -92,8 +92,8 @@ where
             self.nl_len,
             self.nl_type,
             self.nl_flags,
-            self.nl_seq,
-            self.nl_pid,
+            self.nl_seq.unwrap_or(0),
+            self.nl_pid.unwrap_or(0),
             self.nl_payload,
         )
     }
@@ -102,18 +102,12 @@ where
 /// Top level netlink header and payload
 #[derive(Debug, PartialEq)]
 pub struct Nlmsghdr<T, P> {
-    /// Length of the netlink message
-    pub nl_len: u32,
-    /// Type of the netlink message
-    pub nl_type: T,
-    /// Flags indicating properties of the request or response
-    pub nl_flags: Vec<NlmF>,
-    /// Sequence number for netlink protocol
-    pub nl_seq: u32,
-    /// ID of the netlink destination for requests and source for responses
-    pub nl_pid: u32,
-    /// Payload of netlink message
-    pub nl_payload: P,
+    nl_len: u32,
+    nl_type: T,
+    nl_flags: Vec<NlmF>,
+    nl_seq: u32,
+    nl_pid: u32,
+    nl_payload: P,
 }
 
 impl<T, P> Nlmsghdr<T, P>
@@ -126,20 +120,50 @@ where
         nl_len: Option<u32>,
         nl_type: T,
         nl_flags: Vec<NlmF>,
-        nl_seq: Option<u32>,
-        nl_pid: Option<u32>,
+        nl_seq: u32,
+        nl_pid: u32,
         nl_payload: P,
     ) -> Self {
         let mut nl = Nlmsghdr {
             nl_type,
             nl_flags,
-            nl_seq: nl_seq.unwrap_or(0),
-            nl_pid: nl_pid.unwrap_or(0),
+            nl_seq,
+            nl_pid,
             nl_payload,
             nl_len: 0,
         };
         nl.nl_len = nl_len.unwrap_or(nl.size() as u32);
         nl
+    }
+
+    /// Length of the netlink message
+    pub fn nl_len(&self) -> u32 {
+        self.nl_len
+    }
+
+    /// Type of the netlink message
+    pub fn nl_type(&self) -> &T {
+        &self.nl_type
+    }
+
+    /// Flags indicating properties of the request or response
+    pub fn nl_flags(&self) -> &[NlmF] {
+        &self.nl_flags
+    }
+
+    /// Sequence number for netlink protocol
+    pub fn nl_seq(&self) -> u32 {
+        self.nl_seq
+    }
+
+    /// ID of the netlink destination for requests and source for responses
+    pub fn nl_pid(&self) -> u32 {
+        self.nl_pid
+    }
+
+    /// Payload of netlink message
+    pub fn nl_payload(&self) -> &P {
+        &self.nl_payload
     }
 }
 
